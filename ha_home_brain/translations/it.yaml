@@ -1,0 +1,207 @@
+configuration:
+  language:
+    name: Lingua
+    description: "Lingua di notifiche, pannello (predefinita) e AI. auto = come Home Assistant se Vatra ha quella lingua, altrimenti inglese. Disponibili: English, Română, Italiano, Magyar (in corso)."
+  log_level:
+    name: Livello di log
+  time_zone:
+    name: Fuso orario
+    description: Fuso orario IANA usato per abitudini e ore di silenzio, es. Europe/Rome.
+  site_context:
+    name: La tua casa
+    description: Qualche frase sulla casa (chi ci vive, orari, riscaldamento). Viene data agli agenti AI e a Jarvis.
+  notify_services:
+    name: Servizi di notifica
+    description: Dove vanno avvisi e richieste di approvazione, es. notify.mobile_app_mio_telefono. I pulsanti funzionano con i servizi mobile_app.
+  ntfy_url:
+    name: URL del topic ntfy
+    description: Facoltativo. Manda gli avvisi anche a questo topic ntfy.
+  notifications:
+    name: Notifiche
+    description: Quanto Vatra scrive sul telefono. Nel pannello si vede sempre tutto.
+    fields:
+      mode:
+        name: Modalità
+        description: "smart = critici subito, il resto raggruppato; all = tutto subito (comportamento vecchio); critical_only = solo i critici."
+      quiet_hours:
+        name: Ore di silenzio
+        description: "es. 22-7. In questo intervallo partono solo gli avvisi critici; le approvazioni aspettano il mattino."
+      max_per_day:
+        name: Messaggi raggruppati al giorno
+        description: Massimo di messaggi non critici al giorno. Oltre, gli avvisi restano nel pannello.
+      batch_minutes:
+        name: Intervallo di raggruppamento (minuti)
+        description: Gli avvisi non critici vengono raccolti e mandati insieme al massimo con questa frequenza.
+      send_resolved:
+        name: Avvisa quando risolto
+        description: Manda anche i messaggi "Risolto" (spento di default, compaiono solo nel pannello).
+      cooldown_hours:
+        name: Pausa tra ripetizioni (ore)
+        description: Un problema risolto e poi tornato non viene rimandato prima di questo tempo.
+  guard:
+    name: Guardia
+    description: Avvisi per dispositivi che diventano non disponibili e batterie scariche.
+    fields:
+      unavailable_minutes:
+        name: Non disponibile da (minuti)
+        description: Avvisa dopo che un dispositivo è non disponibile da tanto così.
+      max_unavailable_hours:
+        name: Ignora dopo (ore)
+        description: I dispositivi giù da più di così sono considerati noti/rimossi e non vengono segnalati.
+      bad_states:
+        name: Stati problematici
+        description: Stati trattati come problema (aggiungi "unknown" se vuoi).
+      battery_threshold:
+        name: Batteria scarica (%)
+      interval_seconds:
+        name: Intervallo di controllo (secondi)
+      ignore:
+        name: Ignora
+        description: Modelli di entità da ignorare, es. sensor.*_linkquality
+  learning:
+    name: Apprendimento delle abitudini
+    description: Impara le abitudini da ciò che fanno le persone e propone automazioni native.
+    fields:
+      enabled:
+        name: Attivo
+      persons:
+        name: Persone
+        description: Entità person.*, usate per "solo quando c'è qualcuno in casa" e per i controlli di presenza.
+      history_import_days:
+        name: Storico da importare (giorni)
+        description: Importato una volta al primo avvio, così l'apprendimento parte subito.
+      min_support_days:
+        name: Giorni minimi
+        description: Un'abitudine deve comparire in almeno questi giorni.
+      min_confidence:
+        name: Affidabilità minima
+        description: Quota di giorni in cui l'abitudine deve comparire (0.6 = 60 %).
+      propose_automations:
+        name: Proponi automazioni
+        description: Manda al telefono le abitudini più solide come proposte di automazione.
+      max_proposals_per_day:
+        name: Proposte al giorno
+  unusual:
+    name: Attività insolita
+    description: Impara cosa è normale e segnala ciò che non lo è. Nessun elenco di dispositivi da scrivere.
+    fields:
+      range:
+        name: Valori anomali
+        description: Valori molto lontani dal normale per quell'ora.
+      silent:
+        name: Sensori muti
+        description: Sensori che di solito cambiano ogni ora e all'improvviso si fermano.
+      flapping:
+        name: Accensioni ripetute
+        description: Dispositivi che si accendono/spengono molto più spesso del solito.
+      dwell:
+        name: Lasciato troppo a lungo
+        description: Porte, luci, dispositivi lasciati in uno stato molto più a lungo del solito.
+      open_away:
+        name: Aperto mentre siete fuori
+        description: Porte/finestre aperte mentre non c'è nessuno in casa.
+      min_days:
+        name: Giorni minimi di dati
+      max_push_per_day:
+        name: Notifiche al giorno
+        description: Limite di osservazioni critiche / guasti confermati mandati al telefono ogni giorno.
+      ignore:
+        name: Ignora
+        description: Modelli di entità da ignorare.
+  safety:
+    name: Sicurezza
+    description: Cosa Vatra può fare da solo. I dispositivi critici chiedono sempre l'approvazione.
+    fields:
+      autonomy:
+        name: Autonomia
+        description: shadow = registra soltanto, copilot = chiede prima, autonomous = fa le cose sicure e offre Annulla.
+      autonomy_overrides:
+        name: Autonomia per dominio
+        description: es. light:autonomous
+      min_temperature:
+        name: Temperatura minima
+      max_temperature:
+        name: Temperatura massima
+      actionable_notifications:
+        name: Pulsanti nelle notifiche
+  agents:
+    name: Agenti AI
+    description: Agenti locali (Ollama) per clima, energia, sicurezza e server. Partono solo quando qualcosa è cambiato.
+    fields:
+      agents:
+        name: Agenti
+      agents_interval_hours:
+        name: Intervallo (ore)
+      quiet_hours:
+        name: Ore di silenzio
+        description: In questo intervallo gli agenti non fanno analisi rumorose, es. 23-7.
+      notify:
+        name: Notifiche
+        description: none, digest (un riepilogo al giorno) o critical.
+      digest_hour:
+        name: Ora del riepilogo
+      allow_actions:
+        name: Consenti azioni
+        description: Gli agenti possono proporre azioni sui dispositivi (sempre con approvazione).
+  mqtt_entities:
+    name: Entità di Vatra in Home Assistant (MQTT)
+    description: Pubblica sensori come avvisi attivi, approvazioni in attesa e "problema" tramite il broker MQTT (es. Mosquitto), per dashboard e automazioni.
+  weekly_report:
+    name: Resoconto settimanale
+    description: La domenica sera (all'ora del riepilogo), un messaggio con cosa Vatra ha imparato, fatto e notato nella settimana.
+  vacation:
+    name: Modalità vacanza
+    description: Quando siete tutti fuori da un po' (o la attivi dal pannello), i giorni di vacanza restano fuori dall'apprendimento, le piccole osservazioni tacciono e movimento o porte aperte nella casa vuota arrivano subito al telefono.
+    fields:
+      auto:
+        name: Automatica
+        description: Si attiva da sola quando tutte le persone sono fuori da abbastanza tempo.
+      away_hours:
+        name: Fuori da (ore)
+      security_alerts:
+        name: Avvisa per movimento / porte mentre siete fuori
+  cleanup:
+    name: Pulizia
+    description: Trova i dispositivi le cui entità non hanno un valore da molti giorni (dispositivi venduti, container cancellati) e propone di disattivarle. Non si cancella niente; Annulla le riattiva.
+    fields:
+      enabled:
+        name: Attiva
+      days:
+        name: Morto da (giorni)
+        description: Un dispositivo viene proposto solo se nessuna delle sue entità ha avuto un valore in questi giorni.
+      max_proposals:
+        name: Proposte per scansione
+  presence_camera:
+    name: Regola – telecamere solo quando siete fuori
+    description: Regola fissa facoltativa. Lascia vuoto se hai già un'automazione per questo.
+  heating_ac_lock:
+    name: Regola – caldaia spenta mentre il climatizzatore riscalda
+    description: Regola fissa facoltativa. Lascia vuoto se hai già un'automazione per questo.
+  follow_thermostat:
+    name: Regola – le valvole seguono il termostato
+    description: Regola fissa facoltativa. Lascia vuoto se hai già un'automazione per questo.
+  assistant:
+    name: Modello AI (Ollama o compatibile OpenAI) e Jarvis
+    fields:
+      backend:
+        name: Tipo di server AI
+        description: "ollama: API nativa di Ollama. openai: qualsiasi server compatibile OpenAI (LM Studio, llama.cpp, vLLM, LocalAI…)."
+      ollama_url:
+        name: URL di Ollama
+        description: es. http://192.168.1.50:11434. Lascia vuoto per disattivare le funzioni AI.
+      openai_url:
+        name: URL compatibile OpenAI
+        description: Usato quando il tipo è openai, es. http://192.168.1.50:1234/v1 (LM Studio) o http://IP:8080/v1 (llama.cpp).
+      api_key:
+        name: Chiave API
+        description: Solo se il server la richiede. La maggior parte dei server locali non la vuole.
+      model:
+        name: Modello
+        description: es. qwen3.5:9b
+      allowed_domains:
+        name: Domini che Jarvis può controllare
+      max_entities:
+        name: Massimo di entità nel contesto
+      num_ctx:
+        name: Dimensione del contesto
+        description: Tienila uguale a quella dell'integrazione Ollama in HA, così il modello non viene ricaricato.

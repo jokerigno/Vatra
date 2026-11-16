@@ -21,9 +21,9 @@ RO_CHARS = re.compile(r"[ăâîșțĂÂÎȘȚ]")
 def test_every_entry_has_both_languages_with_same_placeholders():
     fmt = string.Formatter()
     for key, e in S.items():
-        assert set(e) == {"en", "ro"}, key
-        ph = [{f for _, f, _, _ in fmt.parse(e[lang]) if f} for lang in ("en", "ro")]
-        assert ph[0] == ph[1], f"{key}: {ph}"
+        assert {"en", "ro"} <= set(e), key
+        ph = {lang: {f for _, f, _, _ in fmt.parse(text) if f} for lang, text in e.items()}
+        assert all(p == ph["en"] for p in ph.values()), f"{key}: {ph}"
         assert not RO_CHARS.search(e["en"]), f"Romanian text in English for {key}"
 
 
