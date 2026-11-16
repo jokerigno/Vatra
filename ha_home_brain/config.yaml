@@ -60,6 +60,7 @@ options:
   safety:
     autonomy: copilot
     autonomy_overrides: []
+    critical_words: []
     min_temperature: 16
     max_temperature: 26
     actionable_notifications: true
@@ -156,6 +157,8 @@ schema:
   safety:
     autonomy: list(shadow|copilot|autonomous)
     autonomy_overrides:
+      - str
+    critical_words:
       - str
     min_temperature: float
     max_temperature: float

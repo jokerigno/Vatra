@@ -208,7 +208,9 @@
     "jarvis.asked": "Chiesto in chat",
     "jarvis.pending": "{eid}: richiesta di approvazione inviata al telefono",
     "jarvis.done": "Fatto.",
-    "jarvis.unexpected": "(risposta inattesa dal modello: {raw})"
+    "jarvis.unexpected": "(risposta inattesa dal modello: {raw})",
+    "jarvis.shadow": "{eid}: modalità shadow – solo registrato, non eseguito",
+    "jarvis.shadow_note": "(Modalità shadow: non ho eseguito niente.)"
   },
   "panel": {
     "nav.home": "Casa",

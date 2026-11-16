@@ -208,7 +208,9 @@
     "jarvis.asked": "Asked in chat",
     "jarvis.pending": "{eid}: approval request sent to your phone",
     "jarvis.done": "Done.",
-    "jarvis.unexpected": "(unexpected answer from the model: {raw})"
+    "jarvis.unexpected": "(unexpected answer from the model: {raw})",
+    "jarvis.shadow": "{eid}: shadow mode – logged, not done",
+    "jarvis.shadow_note": "(Shadow mode: nothing was actually done.)"
   },
   "panel": {
     "nav.home": "Home",

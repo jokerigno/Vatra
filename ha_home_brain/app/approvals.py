@@ -22,7 +22,11 @@ BLOCKED_SERVICES = {("homeassistant", "stop"), ("homeassistant", "restart"),
 CRITICAL_SERVICES = {("lock", "unlock"), ("lock", "open"), ("valve", "open_valve"),
                      ("alarm_control_panel", "alarm_disarm"), ("cover", "open_cover")}
 CRITICAL_WORDS = ("centrala", "central_heating", "boiler", "gaz", "gas", "pompa", "robinet",
-                  "valve", "frigider", "refrigerator", "server", "nas", "proxmox", "truenas")
+                  "valve", "frigider", "refrigerator", "server", "nas", "proxmox", "truenas",
+                  # italiano
+                  "caldaia", "scaldabagno", "valvola", "rubinetto", "frigo", "congelatore", "allarme",
+                  "sirena", "telecamer", "serratura", "cancello")
+CRITICAL_DOMAINS = ("lock", "alarm_control_panel", "valve")
 
 
 def _sid(*parts) -> str:
@@ -34,6 +38,9 @@ class Guardrails:
         self.min_temp = float(cfg.get("min_temperature", 16))
         self.max_temp = float(cfg.get("max_temperature", 26))
         self.default_mode = cfg.get("autonomy", COPILOT)
+        # parole in più (id o nome dell'entità) che chiedono sempre approvazione, es. il nome del server di casa
+        self.words = CRITICAL_WORDS + tuple(w.strip().lower() for w in cfg.get("critical_words") or []
+                                            if isinstance(w, str) and w.strip())
         self.overrides: dict[str, str] = {}
         for item in cfg.get("autonomy_overrides", []) or []:
             if ":" in item:
@@ -43,7 +50,8 @@ class Guardrails:
     def mode_for(self, domain: str) -> str:
         return self.overrides.get(domain, self.default_mode)
 
-    def evaluate(self, domain: str, service: str, entity_id: str, data: dict | None) -> tuple[str, str]:
+    def evaluate(self, domain: str, service: str, entity_id: str, data: dict | None,
+                 name: str = "") -> tuple[str, str]:
         """Întoarce (decizie, motiv): blocked | approve | allowed."""
         data = data or {}
         if domain in BLOCKED or (domain, service) in BLOCKED_SERVICES:
@@ -58,9 +66,12 @@ class Guardrails:
                     return "blocked", t("safe.temp_invalid")
                 if not self.min_temp <= temp <= self.max_temp:
                     return "blocked", t("safe.temp_range", temp=temp, lo=self.min_temp, hi=self.max_temp)
-        if (domain, service) in CRITICAL_SERVICES or domain in ("lock", "alarm_control_panel", "valve"):
+        target = entity_id.split(".", 1)[0] if entity_id else domain
+        if (domain, service) in CRITICAL_SERVICES or domain in CRITICAL_DOMAINS or \
+                (domain == "homeassistant" and target in (*CRITICAL_DOMAINS, "cover")):
+            # homeassistant.turn_on/off/toggle pe o încuietoare/valvă/jaluzea = aceeași acțiune critică
             return "approve", t("safe.critical")
-        if any(w in entity_id.lower() for w in CRITICAL_WORDS):
+        if any(w in f"{entity_id} {name}".lower() for w in self.words):
             return "approve", "dispozitiv important: cere mereu aprobare"
         return "allowed", ""
 
@@ -137,11 +148,16 @@ class Approvals:
     async def request_action(self, source: str, domain: str, service: str, entity_id: str,
                              data: dict | None, reason: str, user_initiated: bool = False) -> dict:
         """Calea unică prin care un agent (sau Jarvis) poate atinge un dispozitiv."""
-        decision, why = self.guard.evaluate(domain, service, entity_id, data)
+        name = self.ha.name(entity_id)
+        decision, why = self.guard.evaluate(domain, service, entity_id, data, name)
         sig = self._signature(domain, service, entity_id)
         if decision == "blocked":
             self.store.log("blocat", f"{source}: {sig} – {why}")
             return {"status": "blocked", "reason": why}
+        if self.guard.mode_for(domain) == SHADOW:
+            # Shadow = doar observă: nici comenzile din chat (Jarvis) nu ating dispozitivele.
+            self.store.log("umbră", t("ap.shadow_log", src=source, svc=service, target=name, reason=reason))
+            return {"status": "shadow"}
         if user_initiated and decision == "allowed":
             # Omul a cerut-o explicit în chat: nu mai întrebăm, dar trecem prin guardrails.
             return await self.execute({"domain": domain, "service": service, "entity_id": entity_id,
@@ -152,7 +168,6 @@ class Approvals:
         allowed_always = sig in set(self.store.get("allowed_signatures", []))
         payload = {"domain": domain, "service": service, "entity_id": entity_id, "data": data or {},
                    "source": source, "reason": reason}
-        name = self.ha.name(entity_id)
         if mode == SHADOW:
             self.store.log("umbră", t("ap.shadow_log", src=source, svc=service, target=name, reason=reason))
             return {"status": "shadow"}
@@ -211,7 +226,8 @@ class Approvals:
             self.store.set("rejected_signatures", sorted(set(self.store.get("rejected_signatures", [])) | {sig}))
             return t("ap.rejected")
         if decision == "always":
-            if self.guard.evaluate(p["domain"], p["service"], p["entity_id"], p["data"])[0] == "allowed":
+            if self.guard.evaluate(p["domain"], p["service"], p["entity_id"], p["data"],
+                                   self.ha.name(p["entity_id"]))[0] == "allowed":
                 self.store.set("allowed_signatures", sorted(set(self.store.get("allowed_signatures", [])) | {sig}))
         res = await self.execute(p)
         return t("ap.done") if res["status"] == "done" else str(res)

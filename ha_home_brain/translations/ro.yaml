@@ -118,6 +118,9 @@ configuration:
       autonomy_overrides:
         name: Autonomie pe domenii
         description: ex. light:autonomous
+      critical_words:
+        name: Cuvinte critice în plus
+        description: Dispozitivele al căror entity id sau nume conține unul dintre aceste cuvinte cer mereu aprobare, ex. numele serverului de acasă.
       min_temperature:
         name: Temperatură minimă
       max_temperature:

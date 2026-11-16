@@ -362,6 +362,39 @@ async def test_agent_proposes_action_needs_approval_and_guardrails_block(setup):
     assert any("blocat" == a["kind"] for a in brain.store.activity())
 
 
+def test_guardrails_italian_words_extra_words_and_homeassistant_bypass():
+    from app.approvals import Guardrails
+    g = Guardrails({"critical_words": ["Joshua", " "]})
+    assert g.evaluate("climate", "turn_off", "climate.caldaia", {})[0] == "approve"
+    assert g.evaluate("switch", "turn_off", "switch.telecamera_balcone", {})[0] == "approve"
+    assert g.evaluate("switch", "turn_off", "switch.pc_power", {}, name="Joshua power")[0] == "approve"   # dal nome
+    assert g.evaluate("switch", "turn_off", "switch.joshua_pc", {})[0] == "approve"                       # parola in più
+    assert g.evaluate("light", "turn_on", "light.cucina", {})[0] == "allowed"
+    # homeassistant.* su un dominio critico = stessa azione critica (prima passava come "allowed")
+    assert g.evaluate("homeassistant", "turn_on", "cover.tapparella", {})[0] == "approve"
+    assert g.evaluate("homeassistant", "toggle", "lock.porta", {})[0] == "approve"
+    assert g.evaluate("homeassistant", "turn_on", "light.cucina", {})[0] == "allowed"
+    assert Guardrails({}).evaluate("switch", "turn_off", "switch.joshua_pc", {})[0] == "allowed"
+
+
+async def test_shadow_mode_also_stops_jarvis_chat_actions(setup):
+    fake, brain = setup
+    brain.approvals.guard.default_mode = "shadow"
+    res = await brain.approvals.request_action("Jarvis", "light", "turn_on", "light.living", {}, "chat",
+                                               user_initiated=True)
+    assert res["status"] == "shadow"
+    out = await brain.assistant._handle({"reply": "Gata.", "actions": [
+        {"domain": "light", "service": "turn_on", "entity_id": "light.living"}]})
+    assert out["actions"] == [] and len(out["refused"]) == 1 and out["reply"] != "Gata."
+    await asyncio.sleep(0.1)
+    assert not any(c["domain"] == "light" for c in fake.calls)
+    assert any(a["kind"] == "umbră" for a in brain.store.activity())
+    brain.approvals.guard.default_mode = "copilot"                     # fuori dallo shadow la chat esegue come prima
+    res = await brain.approvals.request_action("Jarvis", "light", "turn_on", "light.living", {}, "chat",
+                                               user_initiated=True)
+    assert res["status"] == "done"
+
+
 async def test_autonomous_mode_runs_and_offers_undo(setup):
     fake, brain = setup
     brain.approvals.guard.default_mode = "autonomous"

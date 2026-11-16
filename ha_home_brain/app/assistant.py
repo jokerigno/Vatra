@@ -93,7 +93,7 @@ class Assistant:
 
     async def _handle(self, data: dict, raw: str = "") -> dict:
         reply = str(data.get("reply") or data.get("answer") or data.get("response") or "").strip()
-        done, refused = [], []
+        done, refused, shadow = [], [], False
         for act in data.get("actions") or []:
             if not isinstance(act, dict):
                 continue
@@ -109,6 +109,9 @@ class Assistant:
                     done.append(f"{domain}.{service} → {eid}")
                 elif res["status"] == "pending":
                     refused.append(t("jarvis.pending", eid=eid))
+                elif res["status"] == "shadow":
+                    shadow = True
+                    refused.append(t("jarvis.shadow", eid=eid))
                 else:
                     refused.append(f"{eid}: {res.get('reason', res['status'])}")
                 continue
@@ -119,4 +122,6 @@ class Assistant:
                 refused.append(f"{eid}: {err}")
         if not reply:
             reply = t("jarvis.done") if done else t("jarvis.unexpected", raw=raw[:300])
+        if shadow:  # modelul poate spune „gata”: în shadow nu s-a executat nimic, o spunem clar
+            reply += " " + t("jarvis.shadow_note")
         return {"reply": reply, "actions": done, "refused": refused}

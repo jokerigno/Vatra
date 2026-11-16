@@ -118,6 +118,9 @@ configuration:
       autonomy_overrides:
         name: Per-domain autonomy
         description: e.g. light:autonomous
+      critical_words:
+        name: Extra critical words
+        description: Devices whose entity id or name contains one of these words always need approval, e.g. the name of your home server.
       min_temperature:
         name: Minimum temperature
       max_temperature:

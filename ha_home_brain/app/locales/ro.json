@@ -208,7 +208,9 @@
     "jarvis.asked": "Cerut în chat",
     "jarvis.pending": "{eid}: am trimis cerere de aprobare pe telefon",
     "jarvis.done": "Gata.",
-    "jarvis.unexpected": "(răspuns neașteptat de la model: {raw})"
+    "jarvis.unexpected": "(răspuns neașteptat de la model: {raw})",
+    "jarvis.shadow": "{eid}: mod umbră – doar notat, neexecutat",
+    "jarvis.shadow_note": "(Mod umbră: nu am executat nimic.)"
   },
   "panel": {
     "nav.home": "Acasă",

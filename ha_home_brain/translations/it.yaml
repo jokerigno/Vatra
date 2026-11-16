@@ -118,6 +118,9 @@ configuration:
       autonomy_overrides:
         name: Autonomia per dominio
         description: es. light:autonomous
+      critical_words:
+        name: Parole critiche in più
+        description: I dispositivi il cui entity id o nome contiene una di queste parole chiedono sempre l'approvazione, es. il nome del server di casa.
       min_temperature:
         name: Temperatura minima
       max_temperature:
